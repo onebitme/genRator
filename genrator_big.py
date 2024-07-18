@@ -8,3 +8,5 @@ from math import isnan
 from dotenv import load_dotenv, dotenv_values 
 # loading variables from .env file
 load_dotenv()
+
+print(os.getenv("OPEN_AI_KEY"))
