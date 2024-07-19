@@ -11,6 +11,13 @@ import markdown
 from dotenv import load_dotenv, dotenv_values 
 # loading variables from .env file
 
+class Input_Commands():
+    def __init__(self,concat,title, category, keywords) -> None:
+        self.concat = concat
+        self.title = title
+        self.category = category
+        self.keywords = keywords
+
 def load_environment():
     load_dotenv()
     print(os.getenv("OPEN_AI_KEY"))
@@ -52,25 +59,51 @@ async def writer(client, command) -> str:
  
     return new_str2
 
-def main():
-    print(os.environ.get("OPEN_AI_KEY"))
-    client = api_client(os.environ.get("OPEN_AI_KEY"))
-    command = "Write me a 2000 words blog post about gambling (in Markdown Format)"
-    bp = asyncio.run(writer(client,command))
-    # print(bp)
-    command = "Summarize: " + bp
-    summary = asyncio.run(writer(client,command))
-    # print(summary)
-    command = "Create 10 Frequently Asked Questions (in Markdown Format) for a blog about: " + summary
-    faq = asyncio.run(writer(client,command))
-    # print(faq)
-    command = "Create a key takeaway table (in HTML Format) with 10 rows for a blog about: " + summary
-    key_table = asyncio.run(writer(client,command))
-    text = bp + "\n" + faq + "\n"
-    tempHTML = markdown.markdown(text)
 
-    with open("output.html", "w", encoding = 'utf-8') as file: 
-        file.write(tempHTML + "\n\n\n" + key_table)
+
+
+def commands_list(spreadsheet_id):
+    input_csv = pd.read_csv(f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv")
+    command = Input_Commands(input_csv['Concat'],input_csv['Title: '],input_csv['Category'],input_csv[' Keywords: '])
+    return command
+
+
+def image_list():
+    imagelink_csv = pd.read_csv(f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?gid={tab_id}&format=csv")
+    image_categories = imagelink_csv.columns
+    image_dict = {}
+
+
+def main():
+    print("Here we go:")
+    command = commands_list(spreadsheet_id = os.environ.get("SHEET_ID"))
+    client = api_client(os.environ.get("OPEN_AI_KEY"))
+
+    content = []
+    image_list = []
+    # Still cant believe I am doing like this
+    title_toExcel = []
+    category_toExcel = []
+    keywords_toExcel = []
+    for i in range(len(command.concat)):
+        title_toExcel.append(command.title[i])
+        category_toExcel.append(command.category[i])
+        keywords_toExcel.append(command.keywords[i])
+        bp = asyncio.run(writer(client,command.concat[i]))
+        print(bp)
+        command_sum = "Summarize: " + bp
+        summary = asyncio.run(writer(client,command_sum))
+        print(summary)
+        command = "Create 10 Frequently Asked Questions in same HTML format a blog about: " + summary
+        faq = asyncio.run(writer(client,command))
+        # print(faq)
+        command = "Create a key takeaway table with 10 rows in same HTML format for a blog about: " + summary
+        key_table = asyncio.run(writer(client,command))
+        text = bp + "\n" + faq + "\n" + key_table
+        with open("output" + str(i) + ".html", "w", encoding = 'utf-8') as file: 
+            file.write(text)
+
+
 
 
 if __name__ == "__main__":
