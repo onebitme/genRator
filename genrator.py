@@ -86,6 +86,8 @@ def main():
     category_toExcel = []
     keywords_toExcel = []
     for i in range(len(command.concat)):
+        print("Loop: " + str(i))
+        print(command.title[2])
         title_toExcel.append(command.title[i])
         category_toExcel.append(command.category[i])
         keywords_toExcel.append(command.keywords[i])
