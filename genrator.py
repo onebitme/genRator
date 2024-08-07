@@ -85,13 +85,20 @@ def main():
     title_toExcel = []
     category_toExcel = []
     keywords_toExcel = []
-    for i in range(len(command.concat)):
+    
+    titles = command.title.tolist()
+    categories = command.category.tolist()
+    keywords = command.keywords.tolist()
+    concats = command.concat.tolist()
+
+
+    for i in range(len(titles)):
         print("Loop: " + str(i))
-        print(command.title[2])
-        title_toExcel.append(command.title[i])
-        category_toExcel.append(command.category[i])
-        keywords_toExcel.append(command.keywords[i])
-        bp = asyncio.run(writer(client,command.concat[i]))
+        print(titles[i])
+        category_toExcel.append(categories[i])
+        keywords_toExcel.append(keywords[i])
+        bp = asyncio.run(writer(client,concats[i]))
+        ### TODO : Take Header 2s and for each, run writer with a short command!!
         print(bp)
         command_sum = "Summarize: " + bp
         summary = asyncio.run(writer(client,command_sum))
