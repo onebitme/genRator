@@ -73,6 +73,29 @@ def image_list():
     image_categories = imagelink_csv.columns
     image_dict = {}
 
+# Returns soup
+def corbaci(file):
+    with open(file, "r",encoding = 'utf-8') as file:
+        soup = BeautifulSoup(file, 'html.parser')
+    return soup
+
+# Returns headers
+def header_reader(corba, header_level):
+    hx_headers = corba.find_all(header_level)
+    # hx_list = [header.get_text() for header in hx_headers]
+    return hx_headers
+
+# takes soup headers, finds siblings, replaces
+def header_modifier(soup_headers, generated):
+    for headers in soup_headers:
+        next_sibling = headers.find_next_sibling()
+        if next_sibling and next_sibling.name == 'p':
+            print(next_sibling)
+            next_sibling.string = generated
+        else:
+            print("Couldn't find p")        
+
+
 
 def main():
     print("Here we go:")
@@ -91,28 +114,33 @@ def main():
     keywords = command.keywords.tolist()
     concats = command.concat.tolist()
 
-
     for i in range(len(titles)):
         print("Loop: " + str(i))
-        print(titles[i])
         category_toExcel.append(categories[i])
         keywords_toExcel.append(keywords[i])
         bp = asyncio.run(writer(client,concats[i]))
+        with open("output" + str(i) + ".html", "r+", encoding = 'utf-8') as file: 
+            file.write(bp)
+        
+        corba = corbaci("output" + str(i) + ".html")
+        header2_list = header_reader(corba, 'h3')
+
+        # HTMLi çorba olarak tutuyoruz şu an
+
+        print(header2_list)
+
+        
         ### TODO : Take Header 2s and for each, run writer with a short command!!
-        print(bp)
-        command_sum = "Summarize: " + bp
-        summary = asyncio.run(writer(client,command_sum))
-        print(summary)
-        command = "Create 10 Frequently Asked Questions in same HTML format a blog about: " + summary
-        faq = asyncio.run(writer(client,command))
+        # print(bp)
+        # command_sum = "Summarize: " + bp
+        # summary = asyncio.run(writer(client,command_sum))
+        # print(summary)
+        # command = "Create 10 Frequently Asked Questions in same HTML format a blog about: " + summary
+        # faq = asyncio.run(writer(client,command))
         # print(faq)
-        command = "Create a key takeaway table with 10 rows in same HTML format for a blog about: " + summary
-        key_table = asyncio.run(writer(client,command))
-        text = bp + "\n" + faq + "\n" + key_table
-        with open("output" + str(i) + ".html", "w", encoding = 'utf-8') as file: 
-            file.write(text)
-
-
+        # command = "Create a key takeaway table with 10 rows in same HTML format for a blog about: " + summary
+        # key_table = asyncio.run(writer(client,command))
+        # text = bp + "\n" + faq + "\n" + key_table
 
 
 if __name__ == "__main__":
